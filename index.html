@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cadet Maths Drill</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: one centred drill card, header strip with rank + score, answers as a 2x2 grid that stacks on phones */
+:root {
+  --bg: #e9eef4;
+  --card: #ffffff;
+  --fg: #142338;
+  --muted: #5a6b82;
+  --line: #cfd8e3;
+  --navy: #1d3557;
+  --brass: #b7821b;
+  --brass-soft: #f6e7c4;
+  --ok: #1f8a4c;
+  --ok-soft: #dcf2e4;
+  --bad: #c0392b;
+  --bad-soft: #f9e0dc;
+  --display: "Black Ops One", "Impact", system-ui, sans-serif;
+  --body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1626; --card: #16233a; --fg: #e8eef6; --muted: #9eb0c7; --line: #2b3d5a;
+    --navy: #8fb3e6; --brass: #e2ad45; --brass-soft: #3a2f17;
+    --ok: #4cc782; --ok-soft: #15372a; --bad: #ef7a6c; --bad-soft: #3d1f1d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1626; --card: #16233a; --fg: #e8eef6; --muted: #9eb0c7; --line: #2b3d5a;
+  --navy: #8fb3e6; --brass: #e2ad45; --brass-soft: #3a2f17;
+  --ok: #4cc782; --ok-soft: #15372a; --bad: #ef7a6c; --bad-soft: #3d1f1d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 17px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 40px;
+}
+.wrap { max-width: 680px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand { display: grid; gap: 2px; }
+.brand h1 { font-family: var(--display); font-weight: 400; font-size: 1.9rem; margin: 0; color: var(--navy); letter-spacing: .02em; text-wrap: balance; }
+.brand span { color: var(--muted); font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.stats { display: flex; gap: 8px; }
+.chip { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-weight: 800; font-size: .9rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chip b { color: var(--brass); }
+.bar { height: 10px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--brass); transition: width .35s ease; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; display: grid; gap: 18px; box-shadow: 0 8px 24px -16px rgba(20,35,56,.35); }
+.qnum { font-family: var(--display); color: var(--brass); font-size: 1rem; letter-spacing: .06em; }
+.q { font-size: 1.35rem; font-weight: 800; line-height: 1.35; margin: 0; text-wrap: balance; }
+.opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 520px) { .opts { grid-template-columns: 1fr; } }
+.opt {
+  font: inherit; font-weight: 700; color: var(--fg); text-align: left; cursor: pointer;
+  background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 14px 16px;
+  display: flex; gap: 12px; align-items: center; min-width: 0; transition: transform .1s, border-color .15s;
+}
+.opt:hover:not(:disabled) { border-color: var(--brass); transform: translateY(-2px); }
+.opt:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.opt .k { flex: none; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--card); border: 1px solid var(--line); font-size: .85rem; color: var(--muted); }
+.opt:disabled { cursor: default; }
+.opt.right { background: var(--ok-soft); border-color: var(--ok); }
+.opt.right .k { background: var(--ok); color: #fff; border-color: var(--ok); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.opt.wrong .k { background: var(--bad); color: #fff; border-color: var(--bad); }
+.opt.dim { opacity: .55; }
+.feedback { border-radius: 12px; padding: 14px 16px; font-weight: 600; line-height: 1.5; }
+.feedback.good { background: var(--ok-soft); }
+.feedback.oops { background: var(--bad-soft); }
+.feedback strong { display: block; font-family: var(--display); font-weight: 400; font-size: 1.15rem; margin-bottom: 4px; }
+.feedback.good strong { color: var(--ok); }
+.feedback.oops strong { color: var(--bad); }
+.actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.btn { font: inherit; font-weight: 800; border: 0; border-radius: 12px; padding: 12px 22px; cursor: pointer; background: var(--navy); color: var(--card); }
+.btn.alt { background: transparent; color: var(--navy); border: 2px solid var(--navy); }
+.btn:focus-visible { outline: 3px solid var(--brass); outline-offset: 2px; }
+.hint { color: var(--muted); font-size: .85rem; text-align: center; }
+/* results */
+.result { text-align: center; justify-items: center; }
+.badge { width: 120px; height: 120px; border-radius: 50%; display: grid; place-items: center; background: var(--brass-soft); border: 4px solid var(--brass); font-size: 3.2rem; }
+.rank { font-family: var(--display); font-size: 2rem; color: var(--navy); margin: 0; }
+.score { font-size: 1.1rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.review { text-align: left; width: 100%; display: grid; gap: 10px; }
+.review h3 { margin: 0; font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.rev { border-left: 4px solid var(--bad); background: var(--bg); border-radius: 0 10px 10px 0; padding: 10px 14px; line-height: 1.45; }
+.rev .a { color: var(--ok); font-weight: 800; }
+.stars span { font-size: 1.8rem; }
+@keyframes pop { 0% { transform: scale(.9); } 60% { transform: scale(1.04); } 100% { transform: scale(1); } }
+.pop { animation: pop .3s ease; }
+@media (prefers-reduced-motion: reduce) { .pop { animation: none; } .bar i, .opt { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <span>Pre-Cadet Studies · Maths</span>
+      <h1>Cadet Maths Drill</h1>
+    </div>
+    <div class="stats">
+      <div class="chip">Score <b id="score">0</b></div>
+      <div class="chip">Streak <b id="streak">0</b> 🔥</div>
+    </div>
+  </header>
+  <div class="bar" aria-hidden="true"><i id="progress"></i></div>
+  <main id="stage" class="card" aria-live="polite"></main>
+  <p class="hint">Tip: press keys 1–4 to answer, Enter for next.</p>
+</div>
+
+<script>
+const QUESTIONS = [
+  { q: "A closed plane figure with four sides, four angles and four vertices is a ____.", options: ["Kite", "Triangle", "Line", "Circle"], answer: 0,
+    why: "Any closed shape with 4 sides is a quadrilateral. A kite has 4 sides, so it's the only choice that fits." },
+  { q: "A cube has 6 faces, ____ vertices and 12 edges.", options: ["8", "4", "6", "10"], answer: 0,
+    why: "A cube has 8 corners (vertices): 4 on top and 4 on the bottom." },
+  { q: "A line segment joining two points on a circle is called a ____.", options: ["Arc", "Diameter", "Radius", "Chord"], answer: 3,
+    why: "A chord joins any two points on a circle. A diameter is a special chord that passes through the centre." },
+  { q: "A polygon with three sides and three vertices is called a ____.", options: ["Square", "Rectangle", "Parallelogram", "Triangle"], answer: 3,
+    why: "Tri means three. A triangle has 3 sides and 3 vertices." },
+  { q: "Algebra is a ____ form of arithmetic.", options: ["Statement", "General", "Co-efficient", "Term"], answer: 1,
+    why: "Algebra uses letters like x and y so one rule works for every number. That makes it the general form of arithmetic." },
+  { q: "An angle equal to 90° is known as ____ angle.", options: ["A right", "An obtuse", "An acute", "A reflex"], answer: 0,
+    why: "Exactly 90° is a right angle. Less than 90° is acute, between 90° and 180° is obtuse." },
+  { q: "Area of a rectangle = ____", options: ["Height", "Width", "πr", "Length × Width"], answer: 3,
+    why: "Area of a rectangle = length × width. A 5 cm by 3 cm rectangle has an area of 15 cm²." },
+  { q: "A decimal fraction consists of ____ parts.", options: ["1", "4", "2", "3"], answer: 2,
+    why: "2 parts: the whole-number part before the point and the decimal part after it. In 12.75, 12 is whole and .75 is decimal." },
+  { q: "Distance is ____ proportional to time and speed.", options: ["Mutually", "Inversely", "Directly", "Opposite"], answer: 2,
+    why: "Distance = Speed × Time. Go faster or for longer and the distance gets bigger, so it is directly proportional." },
+  { q: "The fraction 9/122 is a ____ fraction.", options: ["Proper", "Improper", "Compound", "None of the above"], answer: 0,
+    why: "The top number (9) is smaller than the bottom number (122), so it is a proper fraction." },
+  { q: "How many types of arcs are there?", options: ["Two", "Three", "Four", "Five"], answer: 1,
+    why: "Three: minor arc (less than half the circle), major arc (more than half) and semicircle (exactly half)." },
+  { q: "If five times a number is 15, the number is ____.", options: ["Five", "Three", "Four", "Six"], answer: 1,
+    why: "5 × ? = 15, so ? = 15 ÷ 5 = 3." },
+  { q: "The sum of three consecutive numbers is 48. The numbers are:", options: ["13, 14, 15", "15, 14, 16", "14, 15, 16", "15, 16, 17"], answer: 3,
+    why: "15 + 16 + 17 = 48. Quick trick: 48 ÷ 3 = 16 is the middle number, so the numbers are 15, 16, 17." },
+  { q: "In sets, N ∪ W = ____", options: ["N", "R", "W", "Z"], answer: 2,
+    why: "W (whole numbers) = 0, 1, 2, 3 … already contains every natural number in N, so joining them just gives W." },
+];
+
+const RANKS = [
+  { min: 0,   name: "Recruit",  icon: "🎒", msg: "Every cadet starts somewhere. Read the explanations and try again!" },
+  { min: .4,  name: "Cadet",    icon: "🎖️", msg: "Good effort, Cadet! A little more drill and you'll climb the ranks." },
+  { min: .65, name: "Sergeant", icon: "⭐", msg: "Sharp work, Sergeant! Just a few to polish." },
+  { min: .85, name: "Captain",  icon: "🏅", msg: "Outstanding, Captain! Nearly perfect." },
+  { min: 1,   name: "General",  icon: "🏆", msg: "Perfect score! Salute, General!" },
+];
+
+const $ = (id) => document.getElementById(id);
+const stage = $("stage");
+let deck, idx, score, streak, best, answered, mistakes;
+
+function shuffle(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function start() {
+  // Shuffle question order and the option order inside each question
+  deck = shuffle(QUESTIONS).map((item) => {
+    const order = shuffle(item.options.map((_, i) => i));
+    return { ...item, options: order.map((i) => item.options[i]), answer: order.indexOf(item.answer) };
+  });
+  idx = 0; score = 0; streak = 0; best = 0; mistakes = [];
+  showQuestion();
+}
+
+function updateStats() {
+  $("score").textContent = score;
+  $("streak").textContent = streak;
+  $("progress").style.width = (idx / deck.length * 100) + "%";
+}
+
+function showQuestion() {
+  answered = false;
+  updateStats();
+  const item = deck[idx];
+  stage.innerHTML = `
+    <div class="qnum">QUESTION ${idx + 1} OF ${deck.length}</div>
+    <p class="q">${item.q}</p>
+    <div class="opts">
+      ${item.options.map((o, i) => `<button class="opt" id="opt${i}" data-i="${i}"><span class="k">${i + 1}</span><span>${o}</span></button>`).join("")}
+    </div>
+    <div id="fb"></div>`;
+  stage.querySelectorAll(".opt").forEach((b) => b.addEventListener("click", () => choose(+b.dataset.i)));
+  stage.classList.remove("pop"); void stage.offsetWidth; stage.classList.add("pop");
+}
+
+const CHEERS = ["Bullseye!", "Correct!", "Well done!", "Spot on!", "Nailed it!"];
+
+function choose(i) {
+  if (answered) return;
+  answered = true;
+  const item = deck[idx];
+  const correct = i === item.answer;
+  stage.querySelectorAll(".opt").forEach((b) => {
+    const n = +b.dataset.i;
+    b.disabled = true;
+    if (n === item.answer) b.classList.add("right");
+    else if (n === i) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+  if (correct) { score++; streak++; best = Math.max(best, streak); }
+  else { streak = 0; mistakes.push(item); }
+  idx++;
+  updateStats();
+  const last = idx === deck.length;
+  $("fb").innerHTML = `
+    <div class="feedback ${correct ? "good" : "oops"}">
+      <strong>${correct ? CHEERS[Math.floor(Math.random() * CHEERS.length)] : "Not quite! Answer: " + item.options[item.answer]}</strong>
+      ${item.why}
+    </div>
+    <div class="actions" style="margin-top:14px"><button class="btn" id="next">${last ? "See my rank" : "Next question →"}</button></div>`;
+  const next = $("next");
+  next.addEventListener("click", last ? showResult : showQuestion);
+  next.focus();
+}
+
+function showResult() {
+  const pct = score / deck.length;
+  const rank = RANKS.filter((r) => pct >= r.min).pop();
+  const stars = Math.round(pct * 5);
+  $("progress").style.width = "100%";
+  stage.innerHTML = `
+    <div class="result" style="display:grid;gap:14px">
+      <div class="badge">${rank.icon}</div>
+      <div class="qnum">YOUR RANK</div>
+      <h2 class="rank">${rank.name}</h2>
+      <div class="stars" aria-label="${stars} of 5 stars">${"<span>★</span>".repeat(stars)}${"<span style='opacity:.25'>★</span>".repeat(5 - stars)}</div>
+      <div class="score">${score} / ${deck.length} correct · best streak ${best}</div>
+      <p style="margin:0">${rank.msg}</p>
+      ${mistakes.length ? `<div class="review"><h3>Revise these</h3>${mistakes.map((m) =>
+        `<div class="rev">${m.q}<br><span class="a">✔ ${m.options[m.answer]}</span></div>`).join("")}</div>` : ""}
+      <div class="actions" style="justify-content:center">
+        ${mistakes.length ? `<button class="btn alt" id="retry">Practise mistakes</button>` : ""}
+        <button class="btn" id="again">Play again</button>
+      </div>
+    </div>`;
+  $("again").addEventListener("click", start);
+  if (mistakes.length) $("retry").addEventListener("click", retryMistakes);
+  stage.classList.remove("pop"); void stage.offsetWidth; stage.classList.add("pop");
+}
+
+function retryMistakes() {
+  deck = shuffle(mistakes); idx = 0; score = 0; streak = 0; best = 0; mistakes = [];
+  showQuestion();
+}
+
+document.addEventListener("keydown", (e) => {
+  if (!answered && /^[1-4]$/.test(e.key) && $("opt0")) choose(+e.key - 1);
+  else if (answered && e.key === "Enter" && $("next") && document.activeElement !== $("next")) $("next").click();
+});
+
+start();
+</script>
